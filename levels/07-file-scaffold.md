@@ -1,6 +1,6 @@
 ---
 id: file-scaffold
-order: 2
+order: 7
 chapter: 操作文件技巧
 title: 让 AI 在指定目录建一份结构化周报
 requiresAI: true

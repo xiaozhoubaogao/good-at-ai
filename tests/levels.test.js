@@ -26,16 +26,48 @@ function level(overrides = {}) {
 }
 
 describe('levels: shipped catalog', () => {
-  it('exposes three ordered levels', () => {
-    assert.equal(LEVELS.length, 3)
+  /** The 10 shipped levels, in display order. */
+  const EXPECTED_IDS = [
+    'prompt-role',
+    'verify-claims',
+    'iterate-refine',
+    'decompose-task',
+    'sensitive-data',
+    'reusable-template',
+    'file-scaffold',
+    'code-script',
+    'mini-project',
+    'code-review',
+  ]
+
+  it('exposes ten ordered levels', () => {
+    assert.equal(LEVELS.length, EXPECTED_IDS.length)
     assert.deepEqual(
       LEVELS.map((item) => item.order),
-      [1, 2, 3],
+      EXPECTED_IDS.map((_, index) => index + 1),
     )
     assert.deepEqual(
       LEVELS.map((item) => item.id),
-      ['prompt-role', 'file-scaffold', 'code-script'],
+      EXPECTED_IDS,
     )
+  })
+
+  it('groups levels into chapters with contiguous order inside each', () => {
+    const chapters = new Map()
+    for (const item of LEVELS) {
+      if (!chapters.has(item.chapter)) chapters.set(item.chapter, [])
+      chapters.get(item.chapter).push(item.order)
+    }
+    for (const [chapter, orders] of chapters) {
+      const sorted = [...orders].sort((left, right) => left - right)
+      assert.deepEqual(orders, sorted, `章节「${chapter}」的 order 不连续`)
+      // A chapter's levels must be adjacent, otherwise the sidebar regroups oddly.
+      assert.equal(
+        sorted[sorted.length - 1] - sorted[0],
+        sorted.length - 1,
+        `章节「${chapter}」的关卡不连续`,
+      )
+    }
   })
 
   it('gives every level a rubric summing to 1 and a sane pass score', () => {
@@ -47,24 +79,52 @@ describe('levels: shipped catalog', () => {
     }
   })
 
-  it('marks artifact levels with deterministic checks and level 1 with none', () => {
-    assert.equal(getLevel('prompt-role').checks.length, 0)
-    assert.ok(getLevel('file-scaffold').checks.length >= 3)
-    assert.ok(getLevel('code-script').checks.length >= 3)
+  it('gives every level at least one text submit field and a unique check id set', () => {
+    for (const item of LEVELS) {
+      assert.ok(
+        item.submit.fields.some((field) => field.type === 'text'),
+        `${item.id} 缺少文本提交字段`,
+      )
+      const ids = item.checks.map((check) => check.id)
+      assert.equal(new Set(ids).size, ids.length, `${item.id} 的检查 id 重复`)
+      const rubricIds = item.rubric.map((entry) => entry.id)
+      assert.equal(new Set(rubricIds).size, rubricIds.length, `${item.id} 的评分维度 id 重复`)
+    }
   })
 
-  it('includes the hard "exactly three sections" count check for level 2', () => {
+  it('marks artifact levels with deterministic checks and keeps level 1 model-only', () => {
+    assert.equal(getLevel('prompt-role').checks.length, 0)
+    for (const item of LEVELS.filter((entry) => entry.id !== 'prompt-role')) {
+      assert.ok(item.checks.length >= 3, `${item.id} 的确定性检查太少`)
+      assert.ok(
+        item.submit.fields.some((field) => field.type === 'artifacts'),
+        `${item.id} 应该提供产物路径字段`,
+      )
+    }
+  })
+
+  it('includes the hard "exactly three sections" count check for the weekly report', () => {
     const count = getLevel('file-scaffold').checks.find((check) => check.kind === 'count')
-    assert.ok(count !== undefined, 'level 2 should carry a count check')
+    assert.ok(count !== undefined, 'file-scaffold should carry a count check')
     assert.equal(count.min, 3)
     assert.equal(count.max, 3)
     assert.equal(count.match.regex, true)
+  })
+
+  it('uses the count check wherever an exact count is required', () => {
+    for (const id of ['file-scaffold', 'iterate-refine', 'decompose-task', 'sensitive-data']) {
+      assert.ok(
+        getLevel(id).checks.some((check) => check.kind === 'count'),
+        `${id} 应该用 count 检查表达数量要求`,
+      )
+    }
   })
 
   it('loads every level from a Markdown file and keeps prose intact', () => {
     for (const item of LEVELS) {
       assert.ok(item.goal.length > 0, `${item.id} 缺少目标`)
       assert.ok(item.brief.length > 0, `${item.id} 缺少任务说明`)
+      assert.ok(item.tips.length > 0, `${item.id} 缺少提示`)
       assert.ok(Array.isArray(item.tips), `${item.id} 的提示不是数组`)
     }
     // The body sections are prose, so they must contain paragraph breaks rather
@@ -80,7 +140,7 @@ describe('levels: shipped catalog', () => {
 
   it('projects a catalog payload without internal check details', () => {
     const payload = catalogPayload()
-    assert.equal(payload.length, 3)
+    assert.equal(payload.length, LEVELS.length)
     assert.equal(payload[0].checkSummary.length, 0)
     assert.ok(payload[1].checkSummary.length > 0)
     assert.ok(payload.every((item) => typeof item.brief === 'string' && Array.isArray(item.tips)))

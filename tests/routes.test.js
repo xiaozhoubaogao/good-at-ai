@@ -6,6 +6,7 @@ import { describe, it } from 'node:test'
 
 import { createHttpHandlers, createHandlers, guardRequest, isLoopbackHost, parseHostHeader, readBody } from '../host/routes.js'
 import { createStore } from '../host/store.js'
+import { LEVELS } from '../levels/index.js'
 import { resolveConfig } from '../index.js'
 import { fakeLlm, makeHandlers, withTempDir } from './helpers.js'
 
@@ -122,7 +123,7 @@ describe('routes: catalog and state', () => {
       const { handlers } = makeHandlers({ dir })
       const settled = await handlers.catalog()
       assert.equal(settled.status, 200)
-      assert.equal(settled.body.levels.length, 3)
+      assert.equal(settled.body.levels.length, LEVELS.length)
       assert.equal(settled.body.judge.model, 'deepseek-chat')
       assert.equal(settled.body.limits.enableReset, true)
       assert.equal(settled.body.playground.available, true)
@@ -146,7 +147,7 @@ describe('routes: catalog and state', () => {
       const { handlers, store } = makeHandlers({ dir })
       const empty = await handlers.state()
       assert.equal(empty.body.summary.passed, 0)
-      assert.equal(empty.body.levels.length, 3)
+      assert.equal(empty.body.levels.length, LEVELS.length)
       assert.ok(empty.body.levels.every((level) => level.attempts === 0))
 
       store.recordAttempt('prompt-role', { pass: true, score: 91, judgeModel: 'deepseek/deepseek-chat' })
@@ -499,7 +500,7 @@ describe('routes: http adapter', () => {
       assert.equal(catalog.status, 200)
       assert.equal(catalog.headers['Content-Type'], 'application/json; charset=utf-8')
       assert.equal(catalog.headers['Cache-Control'], 'no-store')
-      assert.equal(catalog.body.levels.length, 3)
+      assert.equal(catalog.body.levels.length, LEVELS.length)
 
       const forbidden = await call('catalog', { host: 'evil.example.com' })
       assert.equal(forbidden.status, 403)

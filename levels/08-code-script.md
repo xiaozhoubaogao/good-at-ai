@@ -1,6 +1,6 @@
 ---
 id: code-script
-order: 3
+order: 8
 chapter: AI 编程技巧
 title: 让 AI 写出带注释、可读的命令行脚本
 requiresAI: true
