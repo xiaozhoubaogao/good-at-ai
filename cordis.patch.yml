@@ -1,0 +1,13 @@
+# AI 通关 bundle patch
+#
+# This file is the `dsh.bundle.patch` layer of this package: the package is a
+# DSH *bundle*, so installing it (Plugin Manager, or
+# `dsh plugin --profile <p> add <path>`) selects the bundle, and profile boot
+# merges this patch — a single `insert` of the plugin row.
+#
+# The row id is the plugin's stable identity (`good-at-ai`); the name must be the
+# exact package name, because that is how the Loader resolves the module. Local
+# plugins use the `@local/` scope, so the package name is `@local/good-at-ai`.
+- insert:
+    - id: good-at-ai
+      name: '@local/good-at-ai'

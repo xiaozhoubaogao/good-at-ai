@@ -1,0 +1,58 @@
+# ── Practice artifacts ────────────────────────────────────────────────────────
+# Produced by the AI 通关 levels (host/paths.js PLAYGROUND_DIRNAME) and yours to
+# keep. Overridable at runtime via GOOD_AT_AI_PLAYGROUND; when that points
+# outside the repo this rule is just a safety net.
+good-at-ai-playground/
+
+# ── Plugin state ──────────────────────────────────────────────────────────────
+# Progress lives at $DSH_HOME/good-at-ai/progress.json — normally ~/.dsh, i.e.
+# outside the repo. Ignored anyway so a DSH_HOME=./.dsh dev run stays local.
+.dsh/
+
+# Written by writeJsonAtomic(): `<file>.tmp-<pid>-<base36>`, plus the
+# `progress.json.corrupt-*` file kept aside after a failed parse.
+*.tmp-*
+*.corrupt-*
+
+# ── Dependencies ──────────────────────────────────────────────────────────────
+# The plugin is intentionally zero-dependency, but ignore these anyway so a
+# stray install never gets committed.
+node_modules/
+.npm/
+.yarn/
+.pnpm-store/
+
+# ── Tests & coverage ──────────────────────────────────────────────────────────
+coverage/
+.nyc_output/
+*.lcov
+
+# ── Build output ──────────────────────────────────────────────────────────────
+dist/
+build/
+*.tsbuildinfo
+
+# ── Local config & secrets ────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── Editors ───────────────────────────────────────────────────────────────────
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.swp
+
+# ── Obsidian ──────────────────────────────────────────────────────────────────
+# workspace.json is per-machine pane/layout state; keep app.json,
+# appearance.json and core-plugins.json so the vault config travels.
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/cache/
+
+# ── OS noise ──────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log
